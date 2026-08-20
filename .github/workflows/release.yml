@@ -1,0 +1,68 @@
+name: Release
+
+# La release est créée PAR CE WORKFLOW, jamais à la main dans l'interface GitHub.
+#
+# Motif : l'auteur d'une release n'est pas modifiable après coup, et une release
+# créée dans l'interface porte le compte personnel de qui a cliqué. C'est ainsi
+# qu'un dépôt public d'organisation se retrouve rattaché à une personne
+# (constaté le 2026-08-20). Créée par un workflow, elle est attribuée à
+# github-actions[bot], qui n'est le compte de personne.
+#
+# Ce dépôt ne distribue pas d'archive : l'installation passe par le gestionnaire
+# de paquets de son écosystème. La release ne sert donc qu'à publier des notes de
+# version lisibles en face d'une étiquette.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Étiquette à publier (elle doit déjà exister, ex : v1.0.0)"
+        required: true
+      title:
+        description: "Titre de la release (laisser vide pour reprendre le nom de l'étiquette)"
+        required: false
+        default: ""
+      notes:
+        description: "Notes de version (laisser vide pour les notes générées par GitHub)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier que l'étiquette existe
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Créer la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          TITLE: ${{ inputs.title }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "[ERR] La release $TAG existe déjà." >&2
+            echo "      Son auteur n'étant pas modifiable, la supprimer d'abord," >&2
+            echo "      puis relancer ce workflow." >&2
+            exit 1
+          fi
+          # Le titre par défaut est le nom de l'étiquette, mais une release déjà
+          # publiée porte souvent un titre lisible : le reprendre à l'identique
+          # évite de dégrader ce que voit un utilisateur.
+          [ -n "$TITLE" ] || TITLE="$TAG"
+          if [ -n "$NOTES" ]; then
+            printf '%s\n' "$NOTES" > notes.md
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "$TITLE" --notes-file notes.md
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "$TITLE" --generate-notes
+          fi
+          echo "[OK] Release $TAG créée, attribuée à github-actions[bot]."
