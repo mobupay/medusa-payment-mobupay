@@ -2,6 +2,12 @@
 
 Le versionnage suit [SemVer](https://semver.org/lang/fr/).
 
+## Non publié
+
+- Compilation du provider vérifiée avec `@medusajs/framework` 2.21.2, la version du
+  projet Medusa cible. La plage `peerDependencies` reste ouverte à Medusa v2.
+- Contrainte Node alignée sur les versions prises en charge par Medusa 2.21.2.
+
 ## 1.0.0 — 2026-07-23
 
 Première version publiée sur npm (PLAN-291 lot 3.C).

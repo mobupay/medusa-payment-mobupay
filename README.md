@@ -4,6 +4,9 @@
 > (offsite redirect). Consomme l'API publique Mobupay (sessions, remboursement, webhook
 > signé V2). Statut : **VALIDÉ e2e sur Medusa 2.17.1** (2026-07-01) — paiement réel capturé
 > + webhook signé (signature V2 vérifiée). NB v2 : options via `this.config`.
+>
+> La compilation TypeScript est également vérifiée avec `@medusajs/framework` **2.21.2**.
+> L'intégration e2e n'a pas été rejouée sur cette version.
 
 ## Modèle
 
